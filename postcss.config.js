@@ -1,7 +1,14 @@
 module.exports = {
   plugins: [
     require('cssnano')({
-      preset: ['default', { discardComments: { removeAll: true } }]
+      preset: [
+        'default',
+        {
+          // 將所有註解移除
+          discardComments: {
+            removeAll: true
+          }
+        }]
     }),
     require('autoprefixer')
   ],

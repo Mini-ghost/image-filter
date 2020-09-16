@@ -12,7 +12,9 @@ module.exports = {
   entry: {
     app: './src/main.ts'
   },
-  devtool: isDev && 'inline-source-map',
+  devtool: isDev
+    ? 'inline-source-map'
+    : false,
   output: {
     filename: 'assets/js/[name].[hash].js',
     path: path.resolve(__dirname, 'dist'),
@@ -24,14 +26,13 @@ module.exports = {
   },
   plugins: [
     new HtmlWebpackPlugin({
-      template: './static/index.html'
+      template: './static/index.html',
+      filename: 'index.html'
     }),
     new MiniCssExtractPlugin({
       filename: 'assets/css/styles.[hash].css'
     }),
-    new CleanWebpackPlugin({
-      cleanStaleWebpackAssets: false
-    })
+    new CleanWebpackPlugin()
   ],
   devServer: {
     contentBase: false,
@@ -47,9 +48,24 @@ module.exports = {
           isDev
             ? 'style-loader'
             : MiniCssExtractPlugin.loader,
-          'css-loader',
-          'postcss-loader',
-          'sass-loader'
+          {
+            loader: 'css-loader',
+            options: {
+              sourceMap: isDev
+            }
+          },
+          {
+            loader: 'postcss-loader',
+            options: {
+              sourceMap: isDev
+            }
+          },
+          {
+            loader: 'sass-loader',
+            options: {
+              sourceMap: isDev
+            }
+          }
         ]
       },
       {
