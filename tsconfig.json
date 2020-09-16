@@ -1,20 +1,20 @@
 {
-	"compilerOptions": {
-		"target": "es6",
-		"module": "esnext",
+  "compilerOptions": {
+    "target": "es6",
+    "module": "esnext",
     "moduleResolution": "node",
-		"noImplicitReturns": true,
-		"outDir": "./dist/",
-		"sourceMap": true,
-		"strict": true,
-		"baseUrl": ".",
-		"paths": {
-			"~/*": ["./src/*"],
-			"@/*": ["./src/*"]
+    "noImplicitReturns": true,
+    "outDir": "./dist/",
+    "sourceMap": true,
+    "strict": true,
+    "baseUrl": ".",
+    "paths": {
+      "~/*": ["./src/*"],
+      "@/*": ["./src/*"]
     }
-	},
-	"include": [
-		"./src/**/*"
-	],
-	"exclude": ["node_modules"]
+  },
+  "include": [
+    "./src/**/*"
+  ],
+  "exclude": ["node_modules"]
 }
