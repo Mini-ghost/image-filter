@@ -1,0 +1,7 @@
+{
+  "editor.tabSize": 2,
+  "eslint.run": "onSave",
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
+}

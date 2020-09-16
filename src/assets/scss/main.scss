@@ -1,0 +1,25 @@
+@import 'lib/tailwind';
+@import 'lib/basic';
+
+*,
+*:before,
+*:after {
+  box-sizing: border-box;
+  border: 0px solid transparent
+}
+#canvas {
+  width: 60%;
+}
+
+.main {
+  max-width: 1366px;
+  width: 92.5%;
+  margin-right: auto;
+  margin-left: auto;
+}
+
+.editor {
+  &-label {
+    max-width: 180px;
+  }
+}

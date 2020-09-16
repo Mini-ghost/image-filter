@@ -1,0 +1,38 @@
+.flex {
+  display: flex;
+}
+
+.items-center {
+  align-items: center;
+
+}
+
+.flex-auto {
+  flex: 1 1 auto;
+}
+
+.text-center {
+  text-align: center
+}
+
+.my-3 {
+  margin-top: .75rem;
+  margin-bottom: .75rem;
+}
+
+.ml-2 {
+  margin-left: .5rem;
+}
+
+.p-2 {
+  padding: .5rem;
+}
+
+.px-6 {
+  padding-right: 1.5rem;
+  padding-left: 1.5rem;
+}
+
+.cursor-pointer {
+  cursor: pointer;
+}
