@@ -13,7 +13,7 @@ module.exports = {
     app: './src/main.ts'
   },
   devtool: isDev
-    ? 'inline-source-map'
+    ? 'cheap-module-eval-source-map'
     : false,
   output: {
     filename: 'assets/js/[name].[hash].js',
@@ -57,7 +57,22 @@ module.exports = {
           {
             loader: 'postcss-loader',
             options: {
-              sourceMap: isDev
+              sourceMap: isDev,
+              postcssOptions: {
+                plugins: [].concat(isDev ? [] : [
+                  require('cssnano')({
+                    preset: [
+                      'default',
+                      {
+                        // 將所有註解移除
+                        discardComments: {
+                          removeAll: true
+                        }
+                      }
+                    ]
+                  }),
+                ]),
+              }
             }
           },
           {
