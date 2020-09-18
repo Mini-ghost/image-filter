@@ -1,7 +1,7 @@
 interface InitOptions {
   el: HTMLCanvasElement
   image?: string
-  state?: StateOptions
+  state?: Partial<StateOptions>
 }
 
 interface SaveOptions {
@@ -32,23 +32,27 @@ export default class CanvasEditor {
   private _canvas!: HTMLCanvasElement
   private _ctx!: CanvasRenderingContext2D
   private _image!: HTMLImageElement
-  private _state!: StateOptions
 
   private _start = { x: 0, y: 0 }
+
+  public state!: StateOptions
+  private customState: InitOptions['state'] | undefined = undefined
 
   constructor (options: InitOptions) {
     this._canvas = options.el
     this._ctx = options.el.getContext('2d')!
 
-    this._state = {
-      ...options.state,
+    this.state = {
       ...CanvasEditor.defaultStateOptions,
+      ...options.state
     }
+    this.customState = options.state
 
     if (typeof options.image === 'string') {
       this.setImage(options.image)
     }
 
+    this.defineReactive(this.state)
     this.initEventListener()
   }
 
@@ -58,19 +62,21 @@ export default class CanvasEditor {
 
   get filter () {
     return (
-      `brightness(${this._state.brightness + 100}%) `
-      + `contrast(${this._state.contrast + 100}%) `
-      + `saturate(${this._state.saturate + 100}%)`
+      `brightness(${this.state.brightness + 100}%) `
+      + `contrast(${this.state.contrast + 100}%) `
+      + `saturate(${this.state.saturate + 100}%)`
     )
   }
 
-  get state () {
-    return this._state
-  }
-
-  set state (state: StateOptions) {
-    this._state = state
-    this.drawImage()
+  private defineReactive<T extends {}> (obj: T) {
+    const keys = Object.keys(obj) as Array<keyof T>
+    for (
+      let i = 0, l = keys.length;
+      i < l;
+      i++
+    ) {
+      defineReactive(obj, keys[i], this.drawImage.bind(this))
+    }
   }
 
   /**
@@ -137,7 +143,7 @@ export default class CanvasEditor {
        * 0.9 || 1.1
        */
       const zoom = 1 - (deltaY / Math.abs(deltaY)) * 0.1
-      const scale = Math.max(this._state.scale * zoom, 1)
+      const scale = Math.max(this.state.scale * zoom, 1)
 
       this.setState('scale', scale)
 
@@ -167,7 +173,7 @@ export default class CanvasEditor {
     if (!this.hasImage) return
     requestAnimationFrame(() => {
       const { width, height } = this._canvas
-      const { scale } = this._state
+      const { scale } = this.state
       this._ctx.filter = this.filter
       this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height)
       this._ctx.drawImage(
@@ -211,20 +217,23 @@ export default class CanvasEditor {
    * @param {Number} value 
    */
   public setState<T extends keyof StateOptions> (key: T, value: number) {
-    this.state = {
-      ...this.state,
-      ...{ [key]: value },
-    }
+    this.state[key] = value
   }
-
   /**
    * 重設圖片
-   * @param {StateOptions} state 
    */
-  public resetState (state?: StateOptions) {
-    this.state = {
-      ...CanvasEditor.defaultStateOptions,
-      ...state,
+  public resetState () {
+    const keys = Object.keys(this.state) as Array<keyof StateOptions>
+    const defaultOptions = CanvasEditor.defaultStateOptions
+    for (
+      let i = 0, l = keys.length;
+      i < l;
+      i++
+    ) {
+      const key = keys[i]
+      this.state[key] = this.customState
+        ? this.customState[key] || defaultOptions[key]
+        : defaultOptions[key]
     }
   }
 
@@ -252,4 +261,31 @@ export default class CanvasEditor {
       query,
     )
   }
+}
+
+// 取自並簡化 Vue 的 defineReactive
+// https://github.com/vuejs/vue/blob/dev/src/core/observer/index.js#L135
+function defineReactive<T extends {}> (
+  obj: T,
+  key: keyof T,
+  cb?: () => void
+) {
+  let value = obj[key]
+
+  Object.defineProperty(obj, key, {
+    enumerable: true,
+    configurable: true,
+    get: function reactiveGetter () {
+      return value
+    },
+    set: function reactiveSetter (newVal) {
+      if (newVal === value) {
+        return
+      }
+      value = newVal
+      if (typeof cb === 'function') {
+        cb()
+      }
+    }
+  })
 }
