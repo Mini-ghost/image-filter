@@ -1,3 +1,5 @@
+import { hasOwn } from '@/utils/hasOwn'
+
 interface InitOptions {
   el: HTMLCanvasElement
   image?: string
@@ -35,14 +37,14 @@ export default class CanvasEditor {
 
   private _start = { x: 0, y: 0 }
 
-  public state!: StateOptions
+  private _state!: StateOptions
   private customState: InitOptions['state'] | undefined = undefined
 
   constructor (options: InitOptions) {
     this._canvas = options.el
     this._ctx = options.el.getContext('2d')!
 
-    this.state = {
+    this._state = {
       ...CanvasEditor.defaultStateOptions,
       ...options.state
     }
@@ -52,7 +54,7 @@ export default class CanvasEditor {
       this.setImage(options.image)
     }
 
-    this.defineReactive(this.state)
+    this.defineReactive(this._state)
     this.initEventListener()
   }
 
@@ -62,9 +64,9 @@ export default class CanvasEditor {
 
   get filter () {
     return (
-      `brightness(${this.state.brightness + 100}%) `
-      + `contrast(${this.state.contrast + 100}%) `
-      + `saturate(${this.state.saturate + 100}%)`
+      `brightness(${this._state.brightness + 100}%) `
+      + `contrast(${this._state.contrast + 100}%) `
+      + `saturate(${this._state.saturate + 100}%)`
     )
   }
 
@@ -143,7 +145,7 @@ export default class CanvasEditor {
        * 0.9 || 1.1
        */
       const zoom = 1 - (deltaY / Math.abs(deltaY)) * 0.1
-      const scale = Math.max(this.state.scale * zoom, 1)
+      const scale = Math.max(this._state.scale * zoom, 1)
 
       this.setState('scale', scale)
 
@@ -173,7 +175,7 @@ export default class CanvasEditor {
     if (!this.hasImage) return
     requestAnimationFrame(() => {
       const { width, height } = this._canvas
-      const { scale } = this.state
+      const { scale } = this._state
       this._ctx.filter = this.filter
       this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height)
       this._ctx.drawImage(
@@ -217,13 +219,26 @@ export default class CanvasEditor {
    * @param {Number} value 
    */
   public setState<T extends keyof StateOptions> (key: T, value: number) {
-    this.state[key] = value
+    if (hasOwn(this._state, key)) {
+      console.error(`state 沒有 ${key} 屬性`)
+      return
+    }
+    this._state[key] = value
   }
+
+  public getState<T extends keyof StateOptions> (key: T) {
+    if (hasOwn(this._state, key)) {
+      console.error(`state 沒有 ${key} 屬性`)
+      return
+    }
+    return this._state[key]
+  }
+
   /**
    * 重設圖片
    */
   public resetState () {
-    const keys = Object.keys(this.state) as Array<keyof StateOptions>
+    const keys = Object.keys(this._state) as Array<keyof StateOptions>
     const defaultOptions = CanvasEditor.defaultStateOptions
     for (
       let i = 0, l = keys.length;
@@ -231,7 +246,7 @@ export default class CanvasEditor {
       i++
     ) {
       const key = keys[i]
-      this.state[key] = this.customState
+      this._state[key] = this.customState
         ? this.customState[key] || defaultOptions[key]
         : defaultOptions[key]
     }

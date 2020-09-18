@@ -27,7 +27,7 @@ file.addEventListener('input', (e) => {
 sliders.forEach(slider => {
   // 設定響應屬性
   const { id } = slider as { id: keyof StateOptions } & HTMLInputElement
-  slider.value = `${editor.state[id]}`
+  slider.value = `${editor.getState(id)}`
 
   let slideOnChange = ({ target }: Event) => {
     const { value, id } = target as HTMLInputElement
@@ -44,7 +44,7 @@ sliders.forEach(slider => {
 reset.addEventListener('click', (e) => {
   editor.resetState()
   sliders.forEach(slider => {
-    slider.value = `${editor.state[slider.id as keyof StateOptions]}`
+    slider.value = `${editor.getState(slider.id as keyof StateOptions)}`
   })
   e.preventDefault()
 })
