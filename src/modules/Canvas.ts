@@ -42,6 +42,8 @@ export default class CanvasEditor {
   private state!: StateOptions
   private customState: InitOptions['state'] | undefined = undefined
 
+  private destroyEvents: (() => void)[] = []
+
   constructor (options: InitOptions) {
     this.canvas = options.el
     this.ctx = options.el.getContext('2d')!
@@ -81,8 +83,10 @@ export default class CanvasEditor {
    * 初始化事件
    */
   private initEvent () {
-    this.dragEvent(),
-    this.zoomEvent()
+    this.destroyEvents.push(
+      this.dragEvent(),
+      this.zoomEvent()
+    )
   }
 
   /**
@@ -293,6 +297,18 @@ export default class CanvasEditor {
       `image/${type}`,
       query,
     )
+  }
+
+  /**
+   * 移除事件監聽
+   */
+  public destroy () {
+    // @ts-ignore
+    this.state = null
+    const len = this.destroyEvents.length
+    for (let i = 0; i < len; i++) {
+      this.destroyEvents[i]()
+    }
   }
 }
 
