@@ -24,7 +24,7 @@ export default class CanvasEditor {
     query: 0.75,
   }
 
-  private static defaultStateOptions: StateOptions = {
+  private static defaultState: StateOptions = {
     brightness: 0,
     contrast: 0,
     saturate: 0,
@@ -44,17 +44,11 @@ export default class CanvasEditor {
     this.canvas = options.el
     this.ctx = options.el.getContext('2d')!
 
-    this.state = {
-      ...CanvasEditor.defaultStateOptions,
-      ...options.state
-    }
-    this.customState = options.state
-
     if (typeof options.image === 'string') {
       this.setImage(options.image)
     }
 
-    this.defineReactive(this.state)
+    this.initState(options.state)
     this.initEventListener()
   }
 
@@ -70,14 +64,14 @@ export default class CanvasEditor {
     )
   }
 
-  private defineReactive<T extends {}> (obj: T) {
-    const keys = Object.keys(obj) as Array<keyof T>
-    for (
-      let i = 0, l = keys.length;
-      i < l;
-      i++
-    ) {
-      defineReactive(obj, keys[i], this.drawImage.bind(this))
+  private initState (state: Partial<StateOptions> = {}) {
+    const { defaultState } = CanvasEditor
+    const states = Object.keys(defaultState) as (keyof StateOptions)[]
+    this.customState = state
+    this.state = { ...defaultState, ...state }
+    
+    for (let i = 0, l = states.length; i < l; i++) {
+      defineReactive(this.state, states[i], this.drawImage.bind(this))
     }
   }
 
@@ -239,7 +233,7 @@ export default class CanvasEditor {
    */
   public resetState () {
     const keys = Object.keys(this.state) as Array<keyof StateOptions>
-    const defaultOptions = CanvasEditor.defaultStateOptions
+    const defaultOptions = CanvasEditor.defaultState
     for (
       let i = 0, l = keys.length;
       i < l;
