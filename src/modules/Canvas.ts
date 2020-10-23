@@ -219,7 +219,7 @@ export default class CanvasEditor {
    * @param {Number} value 
    */
   public setState<T extends keyof StateOptions> (key: T, value: number) {
-    if (hasOwn(this._state, key)) {
+    if (!hasOwn(this._state, key)) {
       console.error(`state 沒有 ${key} 屬性`)
       return
     }
@@ -227,7 +227,7 @@ export default class CanvasEditor {
   }
 
   public getState<T extends keyof StateOptions> (key: T) {
-    if (hasOwn(this._state, key)) {
+    if (!hasOwn(this._state, key)) {
       console.error(`state 沒有 ${key} 屬性`)
       return
     }
@@ -277,6 +277,7 @@ export default class CanvasEditor {
     )
   }
 }
+
 
 // 取自並簡化 Vue 的 defineReactive
 // https://github.com/vuejs/vue/blob/dev/src/core/observer/index.js#L135
