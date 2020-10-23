@@ -16,6 +16,8 @@ export interface StateOptions {
   contrast: number
   saturate: number
   scale: number
+  x: number
+  y: number
 }
 
 export default class CanvasEditor {
@@ -24,69 +26,75 @@ export default class CanvasEditor {
     query: 0.75,
   }
 
-  private static defaultStateOptions: StateOptions = {
+  private static defaultState: StateOptions = {
     brightness: 0,
     contrast: 0,
     saturate: 0,
-    scale: 1
+    scale: 1,
+    x: 0,
+    y: 0
   }
 
-  private _canvas!: HTMLCanvasElement
-  private _ctx!: CanvasRenderingContext2D
-  private _image!: HTMLImageElement
+  private canvas!: HTMLCanvasElement
+  private ctx!: CanvasRenderingContext2D
+  private image!: HTMLImageElement
 
-  private _start = { x: 0, y: 0 }
-
-  private _state!: StateOptions
+  private state!: StateOptions
   private customState: InitOptions['state'] | undefined = undefined
 
-  constructor (options: InitOptions) {
-    this._canvas = options.el
-    this._ctx = options.el.getContext('2d')!
+  private destroyEvents: (() => void)[] = []
 
-    this._state = {
-      ...CanvasEditor.defaultStateOptions,
-      ...options.state
-    }
-    this.customState = options.state
+  constructor (options: InitOptions) {
+    this.canvas = options.el
+    this.ctx = options.el.getContext('2d')!
 
     if (typeof options.image === 'string') {
       this.setImage(options.image)
     }
 
-    this.defineReactive(this._state)
-    this.initEventListener()
+    this.initState(options.state)
+    this.initEvent()
   }
 
   get hasImage () {
-    return !!this._image
+    return !!this.image
   }
 
   get filter () {
     return (
-      `brightness(${this._state.brightness + 100}%) `
-      + `contrast(${this._state.contrast + 100}%) `
-      + `saturate(${this._state.saturate + 100}%)`
+      `brightness(${this.state.brightness + 100}%) `
+      + `contrast(${this.state.contrast + 100}%) `
+      + `saturate(${this.state.saturate + 100}%)`
     )
   }
 
-  private defineReactive<T extends {}> (obj: T) {
-    const keys = Object.keys(obj) as Array<keyof T>
-    for (
-      let i = 0, l = keys.length;
-      i < l;
-      i++
-    ) {
-      defineReactive(obj, keys[i], this.drawImage.bind(this))
+  private initState (state: Partial<StateOptions> = {}) {
+    const { defaultState } = CanvasEditor
+    const states = Object.keys(defaultState) as (keyof StateOptions)[]
+    this.customState = state
+    this.state = { ...defaultState, ...state }
+    
+    for (let i = 0, l = states.length; i < l; i++) {
+      defineReactive(this.state, states[i], this.drawImage.bind(this))
     }
   }
 
   /**
-   * 初始化事件監聽
+   * 初始化事件
    */
-  private initEventListener () {
+  private initEvent () {
+    this.destroyEvents.push(
+      this.dragEvent(),
+      this.zoomEvent()
+    )
+  }
+
+  /**
+   * 滑鼠拖曳事件
+   */
+  private dragEvent () {
     const { documentElement: html } = document
-    const canvas = this._canvas
+    const { canvas } = this
     let isMouesDown = false
     let startX = 0
     let startY = 0
@@ -102,7 +110,6 @@ export default class CanvasEditor {
         'cursor-grabbing'
       )
     }
-
 
     const onMousedown = (e: MouseEvent) => {
       if (isMouesDown) { return }
@@ -131,25 +138,8 @@ export default class CanvasEditor {
       startX = e.clientX
       startY = e.clientY
 
-      this._start.x += dx
-      this._start.y += dy
-
-      this.drawImage()
-    }
-
-    const onWheel = (e: WheelEvent) => {
-      if (!e.ctrlKey) { return }
-      const { deltaY } = e
-      /**
-       * 放大縮小
-       * 0.9 || 1.1
-       */
-      const zoom = 1 - (deltaY / Math.abs(deltaY)) * 0.1
-      const scale = Math.max(this._state.scale * zoom, 1)
-
-      this.setState('scale', scale)
-
-      e.preventDefault()
+      this.state.x += dx
+      this.state.y += dy
     }
     
     // 滑鼠樣式
@@ -164,9 +154,45 @@ export default class CanvasEditor {
     // 拖曳超出 canvas
     html.addEventListener('mouseup', onMouseup)
 
+    return () => {
+      canvas.removeEventListener('mouseenter', onMouseenter)
+      canvas.removeEventListener('mouseleave', onMouseleave)
+
+      canvas.removeEventListener('mousedown', onMousedown)
+      canvas.removeEventListener('mouseup', onMouseup)
+      canvas.removeEventListener('mousemove', onMousemove)
+
+      html.removeEventListener('mouseup', onMouseup)
+    }
+  } 
+
+  /**
+   * 滾輪放大縮小事件
+   */
+  private zoomEvent () {
+    const { canvas } = this
+    const onWheel = (e: WheelEvent) => {
+      if (!e.ctrlKey) { return }
+      const { deltaY } = e
+      /**
+       * 放大縮小
+       * 0.9 || 1.1
+       */
+      const zoom = 1 - (deltaY / Math.abs(deltaY)) * 0.1
+      const scale = Math.max(this.state.scale * zoom, 1)
+
+      this.setState('scale', scale)
+
+      e.preventDefault()
+    }
+
     // 縮放
     canvas.addEventListener('wheel', onWheel)
-  } 
+
+    return () => {
+      canvas.removeEventListener('wheel', onWheel)
+    }
+  }
 
   /**
    * 將圖片繪製於 canvas 上
@@ -174,14 +200,14 @@ export default class CanvasEditor {
   private drawImage () {
     if (!this.hasImage) return
     requestAnimationFrame(() => {
-      const { width, height } = this._canvas
-      const { scale } = this._state
-      this._ctx.filter = this.filter
-      this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height)
-      this._ctx.drawImage(
-        this._image,
-        this._start.x - (scale - 1) * width * 0.5,
-        this._start.y - (scale - 1) * height * 0.5,
+      const { width, height } = this.canvas
+      const { scale } = this.state
+      this.ctx.filter = this.filter
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.ctx.drawImage(
+        this.image,
+        this.state.x - (scale - 1) * width * 0.5,
+        this.state.y - (scale - 1) * height * 0.5,
         width * scale,
         height * scale
       )
@@ -192,13 +218,13 @@ export default class CanvasEditor {
    * 獲取 image 單例實例
    */
   private getImage () {
-    if (this._image) {
-      return this._image
+    if (this.image) {
+      return this.image
     }
-    const image = this._image = new Image()
+    const image = this.image = new Image()
     image.onload = () => {
-      this._canvas.width = this._image.width
-      this._canvas.height = this._image.height
+      this.canvas.width = this.image.width
+      this.canvas.height = this.image.height
       this.drawImage()
     }
     image.onerror = () => { throw new Error('圖片有問題!!!') }
@@ -219,36 +245,32 @@ export default class CanvasEditor {
    * @param {Number} value 
    */
   public setState<T extends keyof StateOptions> (key: T, value: number) {
-    if (!hasOwn(this._state, key)) {
+    if (!hasOwn(this.state, key)) {
       console.error(`state 沒有 ${key} 屬性`)
       return
     }
-    this._state[key] = value
+    this.state[key] = value
   }
 
   public getState<T extends keyof StateOptions> (key: T) {
-    if (!hasOwn(this._state, key)) {
+    if (!hasOwn(this.state, key)) {
       console.error(`state 沒有 ${key} 屬性`)
       return
     }
-    return this._state[key]
+    return this.state[key]
   }
 
   /**
    * 重設圖片
    */
   public resetState () {
-    const keys = Object.keys(this._state) as Array<keyof StateOptions>
-    const defaultOptions = CanvasEditor.defaultStateOptions
-    for (
-      let i = 0, l = keys.length;
-      i < l;
-      i++
-    ) {
+    const keys = Object.keys(this.state) as Array<keyof StateOptions>
+    const { defaultState } = CanvasEditor
+    for (let i = 0, l = keys.length; i < l; i++) {
       const key = keys[i]
-      this._state[key] = this.customState
-        ? this.customState[key] || defaultOptions[key]
-        : defaultOptions[key]
+      this.state[key] = this.customState
+        ? this.customState[key] || defaultState[key]
+        : defaultState[key]
     }
   }
 
@@ -263,7 +285,7 @@ export default class CanvasEditor {
     }: SaveOptions = CanvasEditor.defaultSaveOptions,
   ) {
     if (!this.hasImage) return
-    this._canvas.toBlob(
+    this.canvas.toBlob(
       (blob) => {
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
@@ -275,6 +297,18 @@ export default class CanvasEditor {
       `image/${type}`,
       query,
     )
+  }
+
+  /**
+   * 移除事件監聽
+   */
+  public destroy () {
+    // @ts-ignore
+    this.state = null
+    const len = this.destroyEvents.length
+    for (let i = 0; i < len; i++) {
+      this.destroyEvents[i]()
+    }
   }
 }
 
