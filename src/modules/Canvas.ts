@@ -51,7 +51,7 @@ export default class CanvasEditor {
     }
 
     this.initState(options.state)
-    this.initEventListener()
+    this.initEvent()
   }
 
   get hasImage () {
@@ -78,11 +78,19 @@ export default class CanvasEditor {
   }
 
   /**
-   * 初始化事件監聽
+   * 初始化事件
    */
-  private initEventListener () {
+  private initEvent () {
+    this.dragEvent(),
+    this.zoomEvent()
+  }
+
+  /**
+   * 滑鼠拖曳事件
+   */
+  private dragEvent () {
     const { documentElement: html } = document
-    const canvas = this.canvas
+    const { canvas } = this
     let isMouesDown = false
     let startX = 0
     let startY = 0
@@ -98,7 +106,6 @@ export default class CanvasEditor {
         'cursor-grabbing'
       )
     }
-
 
     const onMousedown = (e: MouseEvent) => {
       if (isMouesDown) { return }
@@ -130,7 +137,36 @@ export default class CanvasEditor {
       this.state.x += dx
       this.state.y += dy
     }
+    
+    // 滑鼠樣式
+    canvas.addEventListener('mouseenter', onMouseenter)
+    canvas.addEventListener('mouseleave', onMouseleave)
 
+    // 拖曳
+    canvas.addEventListener('mousedown', onMousedown)
+    canvas.addEventListener('mouseup', onMouseup)
+    canvas.addEventListener('mousemove', onMousemove)
+
+    // 拖曳超出 canvas
+    html.addEventListener('mouseup', onMouseup)
+
+    return () => {
+      canvas.removeEventListener('mouseenter', onMouseenter)
+      canvas.removeEventListener('mouseleave', onMouseleave)
+
+      canvas.removeEventListener('mousedown', onMousedown)
+      canvas.removeEventListener('mouseup', onMouseup)
+      canvas.removeEventListener('mousemove', onMousemove)
+
+      html.removeEventListener('mouseup', onMouseup)
+    }
+  } 
+
+  /**
+   * 滾輪放大縮小事件
+   */
+  private zoomEvent () {
+    const { canvas } = this
     const onWheel = (e: WheelEvent) => {
       if (!e.ctrlKey) { return }
       const { deltaY } = e
@@ -145,22 +181,14 @@ export default class CanvasEditor {
 
       e.preventDefault()
     }
-    
-    // 滑鼠樣式
-    canvas.addEventListener('mouseenter', onMouseenter)
-    canvas.addEventListener('mouseleave', onMouseleave)
-
-    // 拖曳
-    canvas.addEventListener('mousedown', onMousedown)
-    canvas.addEventListener('mouseup', onMouseup)
-    canvas.addEventListener('mousemove', onMousemove)
-
-    // 拖曳超出 canvas
-    html.addEventListener('mouseup', onMouseup)
 
     // 縮放
     canvas.addEventListener('wheel', onWheel)
-  } 
+
+    return () => {
+      canvas.removeEventListener('wheel', onWheel)
+    }
+  }
 
   /**
    * 將圖片繪製於 canvas 上
