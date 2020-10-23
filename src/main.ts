@@ -1,4 +1,3 @@
-import 'normalize.css'
 import '@/assets/scss/main.scss'
 
 import { $, $$ } from '~/utils/selectors'
