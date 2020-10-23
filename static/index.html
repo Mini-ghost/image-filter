@@ -7,94 +7,111 @@
 </head>
 <body>
   <div id="app">
-    <header class="header">
-      <h1 class="header-title text-center">圖片濾鏡 Image Filter</h1>
+    <header>
+      <h1 class="text-2xl font-bold my-4 text-center">圖片濾鏡 Image Filter</h1>
     </header>
-    <main class="main flex">
-      <canvas id="canvas"></canvas>
-      <div class="flex-auto px-6">
-        <form id="upload">
-          <label 
-            for="file"
-            class="editor-label flex-auto"
-          >
-            選擇圖片
-          </label>
-          <input id="file" type="file">
-        </form>
-        <form id="editor">
-          <!-- 亮度 -->
-          <div class="editor-item flex items-center my-3">
+    <main>
+      <div class="container mx-auto">
+        <canvas 
+          id="canvas"
+          class="bg-gray-300 w-full"
+        >
+        </canvas>
+        <div class="mt-5">
+          <!-- 上傳 -->
+          <form id="upload">
             <label 
-              for="brightness"
-              class="editor-label flex-auto"
-            >
-              亮度（Brightness）
-            </label>
-            <input
-              id="brightness"
+              for="file"
               class="flex-auto"
-              type="range"
-              min="-100"
-              max="100"
-              value="0"
-              step="1"
             >
-          </div>
-          <!-- 對比 -->
-          <div class="editor-item flex items-center my-3">
-            <label 
-              for="contrast"
-              class="editor-label flex-auto"
-            >
-              對比（Contrast）
+              選擇圖片
             </label>
-            <input
-              id="contrast"
-              class="flex-auto"
-              type="range"
-              min="-100"
-              max="100"
-              value="0"
-              step="1"
-            >
-          </div>
-          <!-- 飽和度 -->
-          <div class="editor-item flex items-center my-3">
-            <label 
-              for="saturate"
-              class="editor-label flex-auto"
-            >
-              飽和（Saturation）
-            </label>
-            <input
-              id="saturate"
-              class="flex-auto"
-              type="range"
-              min="-100"
-              max="100"
-              value="0"
-              step="1"
-            >
-          </div>
-          <!-- 下載 -->
-          <div class="editor-item flex items-center my-3">
-            <button 
-              id="reset"
-              type="reset"
-              class="p-2 cursor-pointer"
-            >
-              重設
-            </button>
-            <button 
-              id="download" 
-              type="button"
-              class="p-2 cursor-pointer ml-2"
-            >
-              下載
-            </button>
-          </div>
-        </form>
+            <input id="file" type="file">
+          </form>
+          <!-- 編輯 -->
+          <form id="editor">
+            <!-- 亮度 -->
+            <div class="flex items-center my-3">
+              <label 
+                for="brightness"
+                class="w-1/4"
+              >
+                亮度（Brightness）
+              </label>
+              <input
+                id="brightness"
+                class="flex-auto"
+                type="range"
+                min="-100"
+                max="100"
+                value="0"
+                step="1"
+              >
+            </div>
+            <!-- 對比 -->
+            <div class="flex items-center my-3">
+              <label 
+                for="contrast"
+                class="w-1/4"
+              >
+                對比（Contrast）
+              </label>
+              <input
+                id="contrast"
+                class="flex-auto"
+                type="range"
+                min="-100"
+                max="100"
+                value="0"
+                step="1"
+              >
+            </div>
+            <!-- 飽和度 -->
+            <div class="flex items-center my-3">
+              <label 
+                for="saturate"
+                class="w-1/4"
+              >
+                飽和（Saturation）
+              </label>
+              <input
+                id="saturate"
+                class="flex-auto"
+                type="range"
+                min="-100"
+                max="100"
+                value="0"
+                step="1"
+              >
+            </div>
+            <!-- 下載 -->
+            <div class="flex items-center my-3">
+              <button 
+                id="reset"
+                type="reset"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded"
+              >
+                重設
+              </button>
+              <button 
+                id="download" 
+                type="button"
+                class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded py-2 px-4 rounded inline-flex items-center ml-2"
+              >
+                <svg 
+                  class="fill-current w-4 h-4 mr-2" 
+                  xmlns="http://www.w3.org/2000/svg" 
+                  viewBox="0 0 20 20"
+                >
+                  <path d="M13 8V2H7v6H2l8 8 8-8h-5zM0 18h20v2H0v-2z"/>
+                </svg>
+                <span>
+                  下載
+                </span>
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </main>
   </div>
