@@ -16,6 +16,8 @@ export interface StateOptions {
   contrast: number
   saturate: number
   scale: number
+  x: number
+  y: number
 }
 
 export default class CanvasEditor {
@@ -28,14 +30,14 @@ export default class CanvasEditor {
     brightness: 0,
     contrast: 0,
     saturate: 0,
-    scale: 1
+    scale: 1,
+    x: 0,
+    y: 0
   }
 
   private canvas!: HTMLCanvasElement
   private ctx!: CanvasRenderingContext2D
   private image!: HTMLImageElement
-
-  private start = { x: 0, y: 0 }
 
   private state!: StateOptions
   private customState: InitOptions['state'] | undefined = undefined
@@ -125,10 +127,8 @@ export default class CanvasEditor {
       startX = e.clientX
       startY = e.clientY
 
-      this.start.x += dx
-      this.start.y += dy
-
-      this.drawImage()
+      this.state.x += dx
+      this.state.y += dy
     }
 
     const onWheel = (e: WheelEvent) => {
@@ -174,8 +174,8 @@ export default class CanvasEditor {
       this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
       this.ctx.drawImage(
         this.image,
-        this.start.x - (scale - 1) * width * 0.5,
-        this.start.y - (scale - 1) * height * 0.5,
+        this.state.x - (scale - 1) * width * 0.5,
+        this.state.y - (scale - 1) * height * 0.5,
         width * scale,
         height * scale
       )
