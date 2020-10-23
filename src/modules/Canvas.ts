@@ -261,16 +261,12 @@ export default class CanvasEditor {
    */
   public resetState () {
     const keys = Object.keys(this.state) as Array<keyof StateOptions>
-    const defaultOptions = CanvasEditor.defaultState
-    for (
-      let i = 0, l = keys.length;
-      i < l;
-      i++
-    ) {
+    const { defaultState } = CanvasEditor
+    for (let i = 0, l = keys.length; i < l; i++) {
       const key = keys[i]
       this.state[key] = this.customState
-        ? this.customState[key] || defaultOptions[key]
-        : defaultOptions[key]
+        ? this.customState[key] || defaultState[key]
+        : defaultState[key]
     }
   }
 
