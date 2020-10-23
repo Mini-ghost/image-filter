@@ -31,20 +31,20 @@ export default class CanvasEditor {
     scale: 1
   }
 
-  private _canvas!: HTMLCanvasElement
-  private _ctx!: CanvasRenderingContext2D
-  private _image!: HTMLImageElement
+  private canvas!: HTMLCanvasElement
+  private ctx!: CanvasRenderingContext2D
+  private image!: HTMLImageElement
 
-  private _start = { x: 0, y: 0 }
+  private start = { x: 0, y: 0 }
 
-  private _state!: StateOptions
+  private state!: StateOptions
   private customState: InitOptions['state'] | undefined = undefined
 
   constructor (options: InitOptions) {
-    this._canvas = options.el
-    this._ctx = options.el.getContext('2d')!
+    this.canvas = options.el
+    this.ctx = options.el.getContext('2d')!
 
-    this._state = {
+    this.state = {
       ...CanvasEditor.defaultStateOptions,
       ...options.state
     }
@@ -54,19 +54,19 @@ export default class CanvasEditor {
       this.setImage(options.image)
     }
 
-    this.defineReactive(this._state)
+    this.defineReactive(this.state)
     this.initEventListener()
   }
 
   get hasImage () {
-    return !!this._image
+    return !!this.image
   }
 
   get filter () {
     return (
-      `brightness(${this._state.brightness + 100}%) `
-      + `contrast(${this._state.contrast + 100}%) `
-      + `saturate(${this._state.saturate + 100}%)`
+      `brightness(${this.state.brightness + 100}%) `
+      + `contrast(${this.state.contrast + 100}%) `
+      + `saturate(${this.state.saturate + 100}%)`
     )
   }
 
@@ -86,7 +86,7 @@ export default class CanvasEditor {
    */
   private initEventListener () {
     const { documentElement: html } = document
-    const canvas = this._canvas
+    const canvas = this.canvas
     let isMouesDown = false
     let startX = 0
     let startY = 0
@@ -131,8 +131,8 @@ export default class CanvasEditor {
       startX = e.clientX
       startY = e.clientY
 
-      this._start.x += dx
-      this._start.y += dy
+      this.start.x += dx
+      this.start.y += dy
 
       this.drawImage()
     }
@@ -145,7 +145,7 @@ export default class CanvasEditor {
        * 0.9 || 1.1
        */
       const zoom = 1 - (deltaY / Math.abs(deltaY)) * 0.1
-      const scale = Math.max(this._state.scale * zoom, 1)
+      const scale = Math.max(this.state.scale * zoom, 1)
 
       this.setState('scale', scale)
 
@@ -174,14 +174,14 @@ export default class CanvasEditor {
   private drawImage () {
     if (!this.hasImage) return
     requestAnimationFrame(() => {
-      const { width, height } = this._canvas
-      const { scale } = this._state
-      this._ctx.filter = this.filter
-      this._ctx.clearRect(0, 0, this._canvas.width, this._canvas.height)
-      this._ctx.drawImage(
-        this._image,
-        this._start.x - (scale - 1) * width * 0.5,
-        this._start.y - (scale - 1) * height * 0.5,
+      const { width, height } = this.canvas
+      const { scale } = this.state
+      this.ctx.filter = this.filter
+      this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height)
+      this.ctx.drawImage(
+        this.image,
+        this.start.x - (scale - 1) * width * 0.5,
+        this.start.y - (scale - 1) * height * 0.5,
         width * scale,
         height * scale
       )
@@ -192,13 +192,13 @@ export default class CanvasEditor {
    * 獲取 image 單例實例
    */
   private getImage () {
-    if (this._image) {
-      return this._image
+    if (this.image) {
+      return this.image
     }
-    const image = this._image = new Image()
+    const image = this.image = new Image()
     image.onload = () => {
-      this._canvas.width = this._image.width
-      this._canvas.height = this._image.height
+      this.canvas.width = this.image.width
+      this.canvas.height = this.image.height
       this.drawImage()
     }
     image.onerror = () => { throw new Error('圖片有問題!!!') }
@@ -219,26 +219,26 @@ export default class CanvasEditor {
    * @param {Number} value 
    */
   public setState<T extends keyof StateOptions> (key: T, value: number) {
-    if (!hasOwn(this._state, key)) {
+    if (!hasOwn(this.state, key)) {
       console.error(`state 沒有 ${key} 屬性`)
       return
     }
-    this._state[key] = value
+    this.state[key] = value
   }
 
   public getState<T extends keyof StateOptions> (key: T) {
-    if (!hasOwn(this._state, key)) {
+    if (!hasOwn(this.state, key)) {
       console.error(`state 沒有 ${key} 屬性`)
       return
     }
-    return this._state[key]
+    return this.state[key]
   }
 
   /**
    * 重設圖片
    */
   public resetState () {
-    const keys = Object.keys(this._state) as Array<keyof StateOptions>
+    const keys = Object.keys(this.state) as Array<keyof StateOptions>
     const defaultOptions = CanvasEditor.defaultStateOptions
     for (
       let i = 0, l = keys.length;
@@ -246,7 +246,7 @@ export default class CanvasEditor {
       i++
     ) {
       const key = keys[i]
-      this._state[key] = this.customState
+      this.state[key] = this.customState
         ? this.customState[key] || defaultOptions[key]
         : defaultOptions[key]
     }
@@ -263,7 +263,7 @@ export default class CanvasEditor {
     }: SaveOptions = CanvasEditor.defaultSaveOptions,
   ) {
     if (!this.hasImage) return
-    this._canvas.toBlob(
+    this.canvas.toBlob(
       (blob) => {
         const url = URL.createObjectURL(blob)
         const link = document.createElement('a')
